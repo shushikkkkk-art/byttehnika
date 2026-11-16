@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}БытТехника — Вход{% endblock %}
+{% block content %}
+<div class="login-box">
+    <h1>Экран входа в систему</h1>
+    <form method="post">
+        <label>Логин:</label>
+        <input type="text" name="login" placeholder="Введите логин" required>
+        <label>Пароль:</label>
+        <input type="password" name="password" placeholder="Введите пароль" required>
+        <button type="submit" class="btn-accent">Войти</button>
+        <a href="{{ url_for('guest') }}" class="btn-accent">Продолжить как гость</a>
+    </form>
+</div>
+{% endblock %}

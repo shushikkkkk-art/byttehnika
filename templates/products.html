@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}БытТехника — Список товаров{% endblock %}
+{% block content %}
+<h1>2. Список товаров (Роль: {{ session.role }})</h1>
+
+{% if session.role in ('Менеджер', 'Администратор', 'АвторизованныйКлиент') %}
+<div class="filters">
+    <div>
+        <label>Поиск:</label>
+        <input type="text" id="search" value="{{ search }}" placeholder="Введите для поиска...">
+    </div>
+    {% if session.role in ('Менеджер', 'Администратор') %}
+    <div>
+        <label>Сортировка:</label>
+        <select id="sort">
+            <option value="">По остаткам ↑↓</option>
+            <option value="asc" {% if sort == 'asc' %}selected{% endif %}>По возрастанию</option>
+            <option value="desc" {% if sort == 'desc' %}selected{% endif %}>По убыванию</option>
+        </select>
+    </div>
+    <div>
+        <label>Поставщик:</label>
+        <select id="supplier">
+            <option value="">Все поставщики</option>
+            {% for s in suppliers %}
+                <option value="{{ s.supplier_id }}" {% if supplier_id == s.supplier_id %}selected{% endif %}>{{ s.supplier_name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if session.role == 'Администратор' %}
+<a href="{{ url_for('product_form') }}" class="btn-accent">+ Добавить товар</a>
+<a href="{{ url_for('orders') }}" class="btn-accent">Просмотр заказов</a>
+{% elif session.role == 'Менеджер' %}
+<a href="{{ url_for('orders') }}" class="btn-accent">Просмотр заказов</a>
+{% endif %}
+
+{% for p in products %}
+<div class="product-card {{ p.row_class }}">
+    <img src="{{ p.image_path or url_for('static', filename='images/picture.png') }}"
+         alt="{{ p.name }}" class="product-img">
+    <div class="product-info">
+        <h3>{{ p.name }}</h3>
+        <p><b>Категория:</b> {{ p.category.category_name if p.category else '—' }}</p>
+        <p><b>Производитель:</b> {{ p.manufacturer.manufacturer_name if p.manufacturer else '—' }}</p>
+        <p><b>Поставщик:</b> {{ p.supplier.supplier_name if p.supplier else '—' }}</p>
+        <p><b>Ед.:</b> {{ p.unit }} | <b>На складе:</b> {{ p.stock_qty }}</p>
+        {% if p.discount > 0 %}
+            <p><b>Скидка:</b> {{ p.discount }}%</p>
+            <p><b>Цена:</b>
+                <span class="old-price">{{ p.price }} ₽</span>
+                <span class="new-price">{{ p.final_price }} ₽</span>
+            </p>
+        {% else %}
+            <p><b>Цена:</b> {{ p.price }} ₽</p>
+        {% endif %}
+        {% if p.stock_qty == 0 %}
+            <p class="out-of-stock">Товар отсутствует</p>
+        {% endif %}
+        {% if session.role == 'Администратор' %}
+        <div class="actions">
+            <a href="{{ url_for('product_form', pid=p.product_id) }}" class="btn-accent">Изменить</a>
+            <form method="post" action="{{ url_for('product_delete', pid=p.product_id) }}" style="display:inline;">
+                <button type="submit" class="btn-danger">Удалить</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function updateFilters() {
+    const params = new URLSearchParams(location.search);
+    const s = document.getElementById('search');
+    if (s) params.set('search', s.value);
+    const sort = document.getElementById('sort');
+    if (sort) params.set('sort', sort.value);
+    const supplier = document.getElementById('supplier');
+    if (supplier) params.set('supplier', supplier.value);
+    location.search = params.toString();
+}
+function debounce(fn, ms) {
+    let t;
+    return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+const searchEl = document.getElementById('search');
+if (searchEl) searchEl.addEventListener('input', debounce(updateFilters, 300));
+const sortEl = document.getElementById('sort');
+if (sortEl) sortEl.addEventListener('change', updateFilters);
+const supEl = document.getElementById('supplier');
+if (supEl) supEl.addEventListener('change', updateFilters);
+</script>
+{% endblock %}

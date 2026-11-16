@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}БытТехника{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="header">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="БытТехника" class="logo">
+    <div class="user-info">
+        {% if session.full_name %}
+            ФИО: {{ session.full_name }} ({{ session.role }})
+        {% elif session.role %}
+            Роль: {{ session.role }}
+        {% endif %}
+        {% if session.user_id or session.role %}
+            <a href="{{ url_for('logout') }}" class="btn-logout">Выход</a>
+        {% endif %}
+    </div>
+</header>
+
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, msg in messages %}
+            <div class="flash flash-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>
